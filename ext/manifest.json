@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "deBS - de-bullshit the collectivist lies",
+  "description": "Helps to analyze and refute collectivist messages on the media",
+  "version": "1.0.0",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "js/initial-content-script.js"
+      ],
+      "css": ["css/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "action": {
+    "default_title": "deBS - analyze and refute collectivist messages",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    },
+    "default_popup": "popup.html"
+  },
+
+  "background": {
+    "service_worker": "js/service-worker.js",
+    "type": "module"
+  },
+
+  "web_accessible_resources": [{
+    "matches": ["<all_urls>"],
+    "resources": ["js/*", "*.js", "js/cljs-runtime/*"]}],
+  "commands": {
+    "reload-extension": {
+      "suggested_key": {"default": "Ctrl+Shift+U"},
+      "description": "Reload the deBS extension"
+    }
+  },
+
+  "permissions": ["sidePanel", "activeTab", "scripting", "tabs", "commands"],
+  "host_permissions": ["http://localhost:8000/*", "https://x.com/home"],
+
+  "minimum_chrome_version": "114"
+}

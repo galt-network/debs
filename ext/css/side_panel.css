@@ -1,0 +1,13 @@
+.card-footer-item {
+  transition: background-color 0.3s ease, color 0.3s ease;
+  cursor: pointer;
+}
+
+.card-footer-item:hover {
+  background-color: #f5f5f5;
+  color: #000;
+}
+
+.checkbox input[type="checkbox"] {
+  margin-right: 0.5em;
+}

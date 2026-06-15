@@ -1,0 +1,18 @@
+.rh-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: #71767b;           /* Twitter gray */
+  cursor: pointer;
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+  font-size: 18px;
+}
+.rh-action-btn:hover {
+  background-color: rgba(29, 155, 240, 0.1);
+  color: #1d9bf0;
+}

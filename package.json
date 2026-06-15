@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "shadow-cljs": "^3.4.11"
+  },
+  "dependencies": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  }
+}

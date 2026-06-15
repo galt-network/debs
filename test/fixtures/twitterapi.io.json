@@ -1,0 +1,224 @@
+{
+  "tweets": [
+    {
+      "type": "tweet",
+      "id": "1726415665228141028",
+      "url": "https://x.com/MadisIT/status/1726415665228141028",
+      "twitterUrl": "https://twitter.com/MadisIT/status/1726415665228141028",
+      "text": "El liberalismo es el respeto irrestricto del proyecto de vida del prójimo, basado en el principio de no agresión y en defensa del derecho a la vida, a la libertad y a la propiedad.\n\nLiberalism is the unconditional respect for the life project of the fellow man under the principle of non-aggression and defending the right to life, liberty and property.\n\nLiberalism on vastuvaidlematu lugupidamine teiste inimeste eluplaanide suhtes, tuginedes vägivallatuse põhimõttele ning elu, vabaduse ja eraomandi kaitsele.\n\n- Alberto Benegas Lynch (h. / jr.)",
+      "source": "",
+      "retweetCount": 1,
+      "replyCount": 1,
+      "likeCount": 24,
+      "quoteCount": 0,
+      "viewCount": 5704,
+      "createdAt": "Mon Nov 20 01:42:24 +0000 2023",
+      "lang": "es",
+      "bookmarkCount": 1,
+      "isReply": false,
+      "inReplyToId": "",
+      "conversationId": "1726415665228141028",
+      "displayTextRange": [
+        0,
+        280
+      ],
+      "inReplyToUserId": "",
+      "inReplyToUsername": "",
+      "isPinned": false,
+      "author": {
+        "type": "user",
+        "userName": "MadisIT",
+        "url": "https://x.com/MadisIT",
+        "twitterUrl": "https://twitter.com/MadisIT",
+        "id": "800308563767791617",
+        "name": "Madis Nõmme",
+        "isVerified": false,
+        "isBlueVerified": true,
+        "verifiedType": null,
+        "profilePicture": "https://pbs.twimg.com/profile_images/1848042153059954688/bIqtEGXd_normal.jpg",
+        "coverPicture": "https://pbs.twimg.com/profile_banners/800308563767791617/1506361912",
+        "description": "Hackerman extraordinaire",
+        "location": "Earth 🌎",
+        "followers": 266,
+        "following": 404,
+        "status": "",
+        "canDm": false,
+        "canMediaTag": true,
+        "createdAt": "Sun Nov 20 12:03:25 +0000 2016",
+        "entities": {
+          "description": {},
+          "url": {
+            "urls": [
+              {
+                "display_url": "mad.is",
+                "expanded_url": "https://mad.is",
+                "indices": [
+                  0,
+                  23
+                ],
+                "url": "https://t.co/6lSDyemmk7"
+              }
+            ]
+          }
+        },
+        "fastFollowersCount": 0,
+        "favouritesCount": 0,
+        "hasCustomTimelines": true,
+        "isTranslator": false,
+        "mediaCount": 610,
+        "statusesCount": 5043,
+        "withheldInCountries": [],
+        "affiliatesHighlightedLabel": {},
+        "possiblySensitive": false,
+        "pinnedTweetIds": [
+          "1726415665228141028"
+        ],
+        "profile_bio": {
+          "description": "Hackerman extraordinaire",
+          "entities": {
+            "description": {},
+            "url": {
+              "urls": [
+                {
+                  "display_url": "mad.is",
+                  "expanded_url": "https://mad.is",
+                  "indices": [
+                    0,
+                    23
+                  ],
+                  "url": "https://t.co/6lSDyemmk7"
+                }
+              ]
+            }
+          }
+        },
+        "isAutomated": false,
+        "automatedBy": null
+      },
+      "extendedEntities": {
+        "media": [
+          {
+            "display_url": "pic.twitter.com/ANvkCPR9Jx",
+            "expanded_url": "https://twitter.com/MadisIT/status/1726415665228141028/photo/1",
+            "ext_master_playlist_only": [],
+            "ext_media_availability": {
+              "status": "Available"
+            },
+            "ext_playlists": [],
+            "features": {
+              "large": {
+                "faces": [
+                  {
+                    "h": 54,
+                    "w": 54,
+                    "x": 253,
+                    "y": 294
+                  },
+                  {
+                    "h": 117,
+                    "w": 117,
+                    "x": 186,
+                    "y": 53
+                  }
+                ]
+              },
+              "orig": {
+                "faces": [
+                  {
+                    "h": 54,
+                    "w": 54,
+                    "x": 253,
+                    "y": 294
+                  },
+                  {
+                    "h": 117,
+                    "w": 117,
+                    "x": 186,
+                    "y": 53
+                  }
+                ]
+              }
+            },
+            "id_str": "1726404632144986112",
+            "indices": [
+              281,
+              304
+            ],
+            "media_key": "3_1726404632144986112",
+            "media_results": {
+              "id": "QXBpTWVkaWFSZXN1bHRzOgwAAQoAARf1a921l0AACgACF/V15oyX0eQAAA==",
+              "result": {
+                "__typename": "ApiMedia",
+                "id": "QXBpTWVkaWE6DAABCgABF/Vr3bWXQAAKAAIX9XXmjJfR5AAA",
+                "media_key": "3_1726404632144986112"
+              }
+            },
+            "media_url_https": "https://pbs.twimg.com/media/F_Vr3bWXQAAT4sg.png",
+            "original_info": {
+              "focus_rects": [
+                {
+                  "h": 345,
+                  "w": 616,
+                  "x": 0,
+                  "y": 0
+                },
+                {
+                  "h": 376,
+                  "w": 376,
+                  "x": 43,
+                  "y": 0
+                },
+                {
+                  "h": 376,
+                  "w": 330,
+                  "x": 66,
+                  "y": 0
+                },
+                {
+                  "h": 376,
+                  "w": 188,
+                  "x": 137,
+                  "y": 0
+                },
+                {
+                  "h": 376,
+                  "w": 616,
+                  "x": 0,
+                  "y": 0
+                }
+              ],
+              "height": 376,
+              "width": 616
+            },
+            "sizes": {
+              "large": {
+                "h": 376,
+                "w": 616
+              }
+            },
+            "type": "photo",
+            "url": "https://t.co/ANvkCPR9Jx"
+          }
+        ]
+      },
+      "card": null,
+      "place": {},
+      "entities": {
+        "hashtags": [],
+        "symbols": [],
+        "urls": [],
+        "user_mentions": []
+      },
+      "isRetweet": false,
+      "isQuote": false,
+      "isConversationControlled": false,
+      "quoted_tweet": null,
+      "retweeted_tweet": null,
+      "isLimitedReply": false,
+      "communityInfo": null
+    }
+  ],
+  "status": "success",
+  "msg": "success",
+  "code": 0
+}

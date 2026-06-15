@@ -1,0 +1,12 @@
+.lsp
+.clj-kondo
+.shadow-cljs
+ext/js/cljs-runtime
+node_modules
+.nrepl-port
+test/fixtures/x.com-home_files
+public/test
+.clojure-mcp
+Session.vim
+ext/js
+pwa/js

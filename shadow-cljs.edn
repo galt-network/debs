@@ -1,0 +1,81 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["dev"
+  "src"
+  "test"]
+
+ :dev-http {8000 "pwa"
+            8001 "public/test"}
+ :jvm-opts ["--sun-misc-unsafe-memory-access=allow"]
+
+:dependencies
+  [[binaryage/oops "0.7.2"]
+   [applied-science/js-interop "0.4.2"]
+   [reagent "2.0.1"]
+   [binaryage/devtools "1.0.7"]
+   [com.lambdaisland/glogi "1.4.177"]
+   [lambdaisland/fetch "1.5.83"]
+   [re-frame "1.4.7"]
+   [cider/cider-nrepl "0.59.0"]
+   [org.clojure/data.json "2.4.0"]]
+
+ :nrepl {:port 3333
+         :write-port-file true}
+
+:builds
+  {:server
+   {:target :node-script
+    :main debs.server.main/init
+    :output-to "server/debs-server.js"
+    :compiler-options {:optimizations :simple}}
+
+   :content-script
+  {:target :esm
+   :output-dir "ext/js"
+   :runtime :custom
+   :devtools {:preloads [devtools.preload]}
+   :modules
+   {:content-script
+    {:init-fn debs.ext.content-script/init
+     :web-worker true}}}
+
+  :service-worker
+  {:target :esm
+   :output-dir "ext/js"
+   :runtime :custom
+   :devtools {:preloads [devtools.preload]}
+   :modules
+   {:service-worker
+    {:init-fn debs.ext.service-worker/init}}}
+
+   :side-panel
+   {:target :esm
+    :output-dir "ext/js"
+    :runtime :custom
+    :devtools {:preloads [devtools.preload]}
+    :modules
+    {:side-panel
+     {:init-fn debs.ext.side-panel/init}}}
+
+   :popup
+   {:target :esm
+    :output-dir "ext/js"
+    :runtime :custom
+    :modules
+    {:popup
+     {:init-fn debs.ext.popup/init}}}
+
+   :pwa
+   {:target :browser
+    :output-dir "pwa/js"
+    :asset-path "/js"
+    :modules {:main {:init-fn debs.pwa.main/init}}
+    :devtools {:preloads [devtools.preload]
+               :before-load debs.pwa.main/stop!
+               :after-load debs.pwa.main/start!
+               :repl-init-ns debs.pwa.main
+               :repl-pprint true}}
+
+   :test
+   {:target :browser-test
+    :test-dir "public/test"}}}
