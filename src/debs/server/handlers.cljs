@@ -25,7 +25,7 @@
 (defn- build-prompt
   "Combine instructions + tweet into the OpenRouter prompt."
   [original-text instructions]
-  (str "<instructions>\n" instructions "</instructions>\n" "<tweet>\n" original-text "\n</tweet>"))
+  (str "\n<instructions>\n" instructions "</instructions>\n" "<tweet>\n" original-text "\n</tweet>"))
 
 (defn- generator-input
   "Pull the two required fields from the parsed body. Returns the prompt
@@ -91,9 +91,9 @@
 
 (def ^:private routes
   [[:options :any         (fn [_req res] (options-handler res))]
-   [:get     "/health"     health-handler]
-   [:get     "/tweet-info" tweet-info-handler]
-   [:post    "/generator"  generator-handler]])
+   [:get     "/api/health"     health-handler]
+   [:get     "/api/tweet-info" tweet-info-handler]
+   [:post    "/api/generator"  generator-handler]])
 
 (defn- match-route [method pathname]
   (some (fn [[m p h]]

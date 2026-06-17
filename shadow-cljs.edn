@@ -72,6 +72,7 @@
     :output-dir "pwa/js"
     :asset-path "/js"
     :modules {:main {:init-fn debs.pwa.main/init}}
+    :closure-defines {debs.pwa.ui.events/DEBS_API_BASE_URL #shadow/env ["DEBS_API_BASE_URL" "http://localhost:3000/api"]}
     :devtools {:preloads [devtools.preload]
                :before-load debs.pwa.main/stop!
                :after-load debs.pwa.main/start!

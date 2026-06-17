@@ -23,6 +23,20 @@
   [container deps]
   (rdc/render container [(partial ui/present deps)]))
 
+(defn get-share-params []
+  (let [search (.. js/window -location -search)
+        params (js/URLSearchParams. search)]
+    {:title (.get params "title")
+     :text  (.get params "text")
+     :url   (.get params "url")}))
+
+(defn handle-incoming-share! []
+  (let [{:keys [title text url] :as share} (get-share-params)]
+    (when (or title text url)
+      (rf/dispatch [:debs.pwa.ui.events/set-tweet-url (or title text url) share])
+      ;; Clean the URL so the share params don't stay in the address bar
+      (.replaceState js/history nil "" js/window.location.pathname))))
+
 (defn when-dom-ready
   [callback]
   (js/document.addEventListener "DOMContentLoaded" callback))
@@ -33,6 +47,7 @@
     (fn [_]
       (reset! app-root (rdc/create-root (js/document.getElementById "app")))
       (rf/dispatch-sync [:initialize])
+      (handle-incoming-share!)
       (render! @app-root {:state ui-state}))))
 
 (defn start!

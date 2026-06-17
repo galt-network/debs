@@ -14,7 +14,7 @@
         {:keys [progress done?]} response-progress]
     [:div.card {:key tweet-id}
      [:div.card-content {:class [padding-size]}
-      [:p {:class ["is-flex" "is-justify-content-space-between" "is-align-items-center"]}
+      [:p {:class ["is-flex" "is-flex-wrap-wrap" "is-justify-content-space-between" "is-align-items-center"]}
        [:a {:href tweet-url :target "_blank"} tweet-url]
        [:span.tag.mb-3 @tag-info]]
       [:div.content [:blockquote.is-italic text]]
@@ -28,7 +28,8 @@
          [:a.button.is-success.is-fullwidth {:on-click generate-response} "de-bullshit"]]]
        [:footer.card-footer
         [:a.card-footer-item {:class [padding-size] :on-click #(bh/copy-to-clipboard response-text)} "Copy"]
-        [:a.card-footer-item {:class [padding-size] :href (prefilled-reply-url tweet-id response-text) :target "_blank"} "Post"]])]))
+        [:a.card-footer-item {:class [padding-size] :href (prefilled-reply-url tweet-id response-text) :target "_blank"} "Post"]
+        [:a.card-footer-item {:class [padding-size] :on-click generate-response} "New answer"]])]))
 
 (defn pasteable-input
   [{:keys [on-click-paste tweet-url valid-url?]}]

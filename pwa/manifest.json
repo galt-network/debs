@@ -6,7 +6,7 @@
   "background_color": "#000000",
   "theme_color": "#FFD700",
   "share_target": 
-    {"action": "/",
+    {"action": "/share-target",
      "method": "GET",
     "params": {
       "title": "title",

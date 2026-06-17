@@ -13,9 +13,11 @@
         tweet-url (rf/subscribe [::ui.subs/tweet-url])
         valid-url? (rf/subscribe [::ui.subs/valid-tweet-url?])
         tweet-card-with-generate (fn [t] (ui.components/tweet-card
-                                           (assoc t :generate-response
+                                           (assoc t
+                                                  :generate-response
                                                   (fn [_] (rf/dispatch [::ui.events/generate-response (:tweet-id t)]))
-                                                  :tag-info (rf/subscribe [::ui.subs/relative-time (:created-at t)]))))
+                                                  :tag-info
+                                                  (rf/subscribe [::ui.subs/relative-time (:created-at t)]))))
         tweets (rf/subscribe [::ui.subs/all-tweets])]
     [:section.section
      [:div.columns.is-centered

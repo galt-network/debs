@@ -25,10 +25,12 @@
              v2))
          maps))
 
+(goog-define DEBS_API_BASE_URL "http://localhost:3000/api")
+
 (def default-db
   {:tweet-url nil
    :now (js/Date.)
-   :config {:api-base-url "http://localhost:3000"}
+   :config {:api-base-url DEBS_API_BASE_URL}
    :instructions "The response length should be up to 280 characters."
    :tweet-ids (list)
    :tweets {}})
@@ -37,7 +39,7 @@
  :initialize
  [(rf/inject-cofx :debs.pwa.storage/local-storage-db)]
  (fn [{:keys [db local-storage-db]} _]
-   {:db (deep-merge default-db db (or local-storage-db {}))}))
+   {:db (deep-merge default-db db (or (dissoc local-storage-db :config :now) {}))}))
 
 (rf/reg-fx
   ::read-clipboard
@@ -61,12 +63,15 @@
            {:on-success [::set-tweet-url]
             :on-failure [::clipboard-read-failed]}]]}))
 
+(comment
+  (update-in {:tweet-ids (list 1 2 3)} [:tweet-ids] (comp distinct conj) 3))
+
 (rf/reg-event-fx
   ::original-tweet-success
   (fn [{:keys [db]} [_ tweet-id tweet-url result]]
     (let [new-db (-> db
                      (assoc ,,, :tweet-url nil)
-                     (update-in ,,, [:tweet-ids] conj tweet-id)
+                     (update-in ,,, [:tweet-ids] (comp distinct conj) tweet-id)
                      (assoc-in ,,, [:tweets tweet-id] {:loading? false
                                                        :created-at (js/Date.)
                                                        :tweet-url tweet-url
@@ -98,7 +103,8 @@
 
 (rf/reg-event-fx
   ::set-tweet-url
-  (fn [{:keys [db]} [_ url]]
+  (fn [{:keys [db]} [_ url share]]
+    (println ">>> ::set-tweet-url" {:url url :share share})
     (let [tweet-id (tweet-id-from-url url)]
       {:db (assoc-in db [:tweet-url] url)
        :fx [(when tweet-id [:dispatch [::fetch-tweet url]])]})))
@@ -140,7 +146,6 @@
       (let [elapsed (- (js/Date.now) start-time)
             total-millis (* 30 1000)
             progress (min 100 (* 100 (/ elapsed total-millis)))]
-        (println ">>> response-progress-tick progress=" progress)
         (assoc-in db [:tweets tweet-id :response-progress :progress] progress))
       db)))
 
