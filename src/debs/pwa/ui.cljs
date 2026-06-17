@@ -1,23 +1,26 @@
 (ns debs.pwa.ui
   (:require
-   [applied-science.js-interop :as j]
-   [debs.shared.ui.components :as ui.components]))
+    [debs.pwa.ui.events :as ui.events]
+    [debs.pwa.ui.subscriptions :as ui.subs]
+    [debs.pwa.storage]
+    [re-frame.core :as rf]
+    [applied-science.js-interop :as j]
+    [debs.shared.ui.components :as ui.components]))
 
 (defn present
-  [{:keys [state]}]
-  [:section.section
-   [:div.columns.is-centered
-    [:div.column.is-full-mobile.is-half-desktop
-     [:div.field
-      [:label.label "Tweet link"]
-      [:div.control
-       [:input.input {:on-change (fn [event] (reset! state {:tweet-url (j/get-in event [:target :value])}))
-                      :value (get-in @state [:tweet-url])}]]]
-     [:div.field
-      [:label.label "Tweet to respond to:"]
-      [:div.control
-       [:textarea.textarea {:read-only true}]]]
-     [:div.field
-      [:div.control
-       [:button.button.is-primary "de-BS"]]]
-     (ui.components/actionable-tweet-card {:original-text "Hello!" :response "No way" :tweet-id "1726415665228141028"})]]])
+  [{:keys []}]
+  (let [click-paste #(rf/dispatch [::ui.events/paste-from-clipboard])
+        tweet-url (rf/subscribe [::ui.subs/tweet-url])
+        valid-url? (rf/subscribe [::ui.subs/valid-tweet-url?])
+        tweet-card-with-generate (fn [t] (ui.components/tweet-card
+                                           (assoc t :generate-response
+                                                  (fn [_] (rf/dispatch [::ui.events/generate-response (:tweet-id t)]))
+                                                  :tag-info (rf/subscribe [::ui.subs/relative-time (:created-at t)]))))
+        tweets (rf/subscribe [::ui.subs/all-tweets])]
+    [:section.section
+     [:div.columns.is-centered
+      [:div.column.is-full-mobile.is-half-desktop
+       (ui.components/pasteable-input {:on-click-paste click-paste
+                                       :tweet-url tweet-url
+                                       :valid-url? valid-url?})
+       (doall (map tweet-card-with-generate @tweets))]]]))

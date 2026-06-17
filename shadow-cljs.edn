@@ -2,6 +2,7 @@
 {:source-paths
  ["dev"
   "src"
+  "resources"
   "test"]
 
  :dev-http {8000 "pwa"
@@ -16,6 +17,7 @@
    [com.lambdaisland/glogi "1.4.177"]
    [lambdaisland/fetch "1.5.83"]
    [re-frame "1.4.7"]
+   [superstructor/re-frame-fetch-fx "0.4.0"]
    [cider/cider-nrepl "0.59.0"]
    [org.clojure/data.json "2.4.0"]]
 

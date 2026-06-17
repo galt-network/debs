@@ -32,6 +32,7 @@
   (when-dom-ready
     (fn [_]
       (reset! app-root (rdc/create-root (js/document.getElementById "app")))
+      (rf/dispatch-sync [:initialize])
       (render! @app-root {:state ui-state}))))
 
 (defn start!

@@ -6,6 +6,14 @@
   [text]
   (j/call js/navigator.clipboard :writeText text))
 
+(defn paste-from-clipboard [callback]
+  (-> (.readText js/navigator.clipboard)
+      (.then (fn [text]
+               (js/console.log "Pasted:" text)
+               (callback text)))
+      (.catch (fn [err]
+                (js/console.error "Clipboard read failed:" err)))))
+
 (defn build-url
   "Builds a full URL string from a base URL and a map of query parameters.
    Values are automatically URL-encoded.

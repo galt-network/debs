@@ -10,3 +10,6 @@ public/test
 Session.vim
 ext/js
 pwa/js
+.env
+debs.db
+server/debs-server.js
