@@ -22,7 +22,7 @@
   {:tweet-url nil
    :now (js/Date.)
    :config {:api-base-url DEBS_API_BASE_URL}
-   :instructions "The response length should be up to 280 characters."
+   :instructions "The response length must be 280 characters or shorter"
    :tweet-ids (list)
    :tweets {}})
 
@@ -160,11 +160,14 @@
             :on-success [::generation-success tweet-id]
             :on-failure [::generation-failure tweet-id]}]]}))
 
-(rf/reg-event-db
+(rf/reg-event-fx
   ::remove-card
-  (fn [db [_ tweet-id]]
-    (if (some #{tweet-id} (:tweet-ids db))
-      (-> db
-          (update ,,, :tweet-ids (partial remove #(= tweet-id %)) )
-          (update ,,, :tweets dissoc tweet-id))
-      db)))
+  (fn [{:keys [db]} [_ tweet-id]]
+    (let [updated-db
+          (if (some #{tweet-id} (:tweet-ids db))
+            (-> db
+                (update ,,, :tweet-ids (partial remove #(= tweet-id %)) )
+                (update ,,, :tweets dissoc tweet-id))
+            db)]
+      {:db updated-db
+       :fx [[:debs.pwa.storage/persist-db updated-db]]})))

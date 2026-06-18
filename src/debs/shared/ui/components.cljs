@@ -67,7 +67,7 @@
                        :start-y   0
                        :current-x 0
                        :lp-timer  nil})]
-    (fn [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress remove-card]}]
+    (fn [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress remove-card] :as params}]
       (let [{:keys [dragging? current-x]} @state]
         [:div.card
          {:key tweet-id
@@ -86,7 +86,7 @@
                   y (.-clientY t)]
               ; Vibrate once directly in the onTouchStart handler to avoid the chrome intervention:
               ;   Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet
-              (when (and js/navigator js/navigator.vibrate) (js/navigator.vibrate 30))
+              ; (when (and js/navigator js/navigator.vibrate) (js/navigator.vibrate 30))
               (swap! state assoc
                      :start-x   x
                      :start-y   y
@@ -99,10 +99,7 @@
                        (fn []
                          (when (and (not (:dragging? @state))
                                     (< (Math/abs (:current-x @state)) 8))
-                           (js/console.log "swipable-card" [:long-press-card tweet-id])
-                           ;; Nice haptic feedback on mobile
-                           (when (and js/navigator js/navigator.vibrate)
-                             (js/navigator.vibrate 30))))
+                           (js/console.log "swipable-card received long-press" [:long-press-card tweet-id])))
                        550))))
 
           :on-touch-move

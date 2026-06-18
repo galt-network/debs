@@ -42,7 +42,9 @@
                (println ">>> generating for:" (str (subs (get body "original_text") 0 30) "..."))
                (if-let [prompt (generator-input body)]
                  (-> (openrouter/chat-completion prompt)
-                     (.then #(http/send-json res 200 {:response %}))
+                     (.then (fn [r]
+                              (js/console.log ">>> generation DONE:" (str (subs (get body "original_text") 0 30) "..."))
+                              (http/send-json res 200 {:response r})))
                      (.catch (fn [err]
                                (js/console.error "openrouter error" err)
                                (http/send-error res 502 {:error "Generation failed"}))))

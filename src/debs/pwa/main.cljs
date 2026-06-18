@@ -31,7 +31,7 @@
 (defn handle-incoming-share! []
   (let [{:keys [title text url] :as share} (get-share-params)]
     (when (or title text url)
-      (rf/dispatch [:debs.pwa.ui.events/set-tweet-url (or title text url) share])
+      (rf/dispatch [:debs.shared.ui.events/set-tweet-url (or title text url) share])
       ;; Clean the URL so the share params don't stay in the address bar
       (.replaceState js/history nil "" js/window.location.pathname))))
 
@@ -43,6 +43,7 @@
   []
   (when-dom-ready
     (fn [_]
+      (js/console.log "PWA app started" (. js/window -location))
       (reset! app-root (rdc/create-root (js/document.getElementById "app")))
       (rf/dispatch-sync [::shared.events/initialize])
       (handle-incoming-share!)

@@ -17,7 +17,8 @@
                                    [ui.components/swipeable-tweet-card
                                     (assoc t
                                            :generate-response
-                                           (fn [_] (rf/dispatch [::shared.events/generate-response (:tweet-id t)]))
+                                           (fn [_]
+                                             (rf/dispatch [::shared.events/generate-response (:tweet-id t)]))
                                            :tag-info
                                            (rf/subscribe [::shared.subs/relative-time (:created-at t)])
                                            :remove-card

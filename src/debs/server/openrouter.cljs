@@ -10,6 +10,7 @@
 (def ^:private api-key  (j/get js/process.env "OPENROUTER_API_KEY"))
 (def ^:private model    (j/get js/process.env "OPENROUTER_MODEL"))
 (def ^:private endpoint (j/get js/process.env "OPENROUTER_API_ENDPOINT"))
+(def ^:private model-timeout-limit (* 1000 (js/parseInt (j/get js/process.env "MODEL_TIMEOUT_LIMIT" "30"))))
 
 (def system-prompt (inline-resource "prompts/system.md"))
 
@@ -33,6 +34,6 @@
                   "HTTP-Referer"       "http://localhost:3000"
                   "X-OpenRouter-Title" "Debs"}
         :body    (request-body prompt)
-        :timeout 30000})
+        :timeout model-timeout-limit})
       (.then (fn [body]
                (some-> body (get-in ["choices" 0 "message" "content"]))))))
