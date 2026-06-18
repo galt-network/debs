@@ -12,12 +12,16 @@
   (let [click-paste #(rf/dispatch [::shared.events/paste-from-clipboard])
         tweet-url (rf/subscribe [::shared.subs/tweet-url])
         valid-url? (rf/subscribe [::shared.subs/valid-tweet-url?])
-        tweet-card-with-generate (fn [t] (ui.components/tweet-card
-                                           (assoc t
-                                                  :generate-response
-                                                  (fn [_] (rf/dispatch [::shared.events/generate-response (:tweet-id t)]))
-                                                  :tag-info
-                                                  (rf/subscribe [::shared.subs/relative-time (:created-at t)]))))
+        tweet-card-with-generate (fn [t]
+                                   ^{:key (:tweet-id t)}
+                                   [ui.components/swipeable-tweet-card
+                                    (assoc t
+                                           :generate-response
+                                           (fn [_] (rf/dispatch [::shared.events/generate-response (:tweet-id t)]))
+                                           :tag-info
+                                           (rf/subscribe [::shared.subs/relative-time (:created-at t)])
+                                           :remove-card
+                                           (fn [_] (rf/dispatch [::shared.events/remove-card (:tweet-id t)])))])
         tweets (rf/subscribe [::shared.subs/all-tweets])]
     [:section.section
      [:div.columns.is-centered

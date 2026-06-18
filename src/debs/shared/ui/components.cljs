@@ -1,35 +1,47 @@
 (ns debs.shared.ui.components
   (:require
    [applied-science.js-interop :as j]
+   [reagent.core :as r]
    [debs.shared.ui.browser-helpers :as bh]))
 
 (defn prefilled-reply-url
   [tweet-id response]
   (bh/build-url "https://x.com/intent/tweet" {"in_reply_to" tweet-id "text" response}))
 
-(defn tweet-card
-  [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress]}]
+(defn card-content
+  [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress] :as params}]
   (let [padding-size "p-2"
         response-text (:text response)
         {:keys [progress done?]} response-progress]
-    [:div.card {:key tweet-id}
-     [:div.card-content {:class [padding-size]}
-      [:p {:class ["is-flex" "is-flex-wrap-wrap" "is-justify-content-space-between" "is-align-items-center"]}
-       [:a {:href tweet-url :target "_blank"} tweet-url]
-       [:span.tag.mb-3 @tag-info]]
-      [:div.content [:blockquote.is-italic text]]
-      (when-not (nil? response-progress)
-        (if (or (> 100 progress) (not done?))
-          [:progress.progress {:value progress :max 100}]
-          [:div.content response-text]))]
-     (if (nil? response-text)
-       [:footer.card-footer
-        [:div.card-footer-item {:class [padding-size]}
-         [:a.button.is-success.is-fullwidth {:on-click generate-response} "de-bullshit"]]]
-       [:footer.card-footer
-        [:a.card-footer-item {:class [padding-size] :on-click #(bh/copy-to-clipboard response-text)} "Copy"]
-        [:a.card-footer-item {:class [padding-size] :href (prefilled-reply-url tweet-id response-text) :target "_blank"} "Post"]
-        [:a.card-footer-item {:class [padding-size] :on-click generate-response} "New answer"]])]))
+    [:div.card-content {:class [padding-size]}
+     [:p {:class ["is-flex" "is-flex-wrap-wrap" "is-justify-content-space-between" "is-align-items-center"]}
+      [:a {:href tweet-url :target "_blank"} tweet-url]
+      [:span.tag.mb-3 @tag-info]]
+     [:div.content [:blockquote.is-italic text]]
+     (when-not (nil? response-progress)
+       (if (or (> 100 progress) (not done?))
+         [:progress.progress {:value progress :max 100}]
+         [:div.content response-text]))]))
+
+(defn card-footer
+  [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress] :as params}]
+  (let [padding-size "p-2"
+        response-text (:text response)
+        {:keys [progress done?]} response-progress]
+    (if (nil? response-text)
+      [:footer.card-footer
+       [:div.card-footer-item {:class [padding-size]}
+        [:a.button.is-success.is-fullwidth {:on-click generate-response} "de-bullshit"]]]
+      [:footer.card-footer
+       [:a.card-footer-item {:class [padding-size] :on-click #(bh/copy-to-clipboard response-text)} "Copy"]
+       [:a.card-footer-item {:class [padding-size] :href (prefilled-reply-url tweet-id response-text) :target "_blank"} "Post"]
+       [:a.card-footer-item {:class [padding-size] :on-click generate-response} "New answer"]])))
+
+(defn tweet-card
+  [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress] :as params}]
+  [:div.card {:key tweet-id}
+   [card-content params]
+   [card-footer params]])
 
 (defn pasteable-input
   [{:keys [on-click-paste tweet-url valid-url?]}]
@@ -44,3 +56,100 @@
    [:div.control
     [:button.button.is-info {:on-click on-click-paste}
      "Paste"]]])
+
+(defn swipeable-tweet-card
+  "A Bulma .card that supports:
+   - Long press anywhere on the card (especially the .card-content area) → dispatches :long-press-card
+   - Left swipe-drag to delete with live visual displacement + fly-off animation"
+  [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress remove-card] :as params}]
+  (let [state (r/atom {:dragging? false
+                       :start-x   0
+                       :start-y   0
+                       :current-x 0
+                       :lp-timer  nil})]
+    (fn [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress remove-card]}]
+      (let [{:keys [dragging? current-x]} @state]
+        [:div.card
+         {:key tweet-id
+          :style {:transform   (when (or dragging? (not= current-x 0))
+                                 (str "translateX(" current-x "px)"))
+                  :transition  (if dragging?
+                                 "none"
+                                 "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)")
+                  :will-change "transform"
+                  :touch-action "pan-y"}   ; allow vertical scroll, claim horizontal gestures
+
+          :on-touch-start
+          (fn [e]
+            (let [t (aget (.-touches e) 0)
+                  x (.-clientX t)
+                  y (.-clientY t)]
+              ; Vibrate once directly in the onTouchStart handler to avoid the chrome intervention:
+              ;   Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet
+              (when (and js/navigator js/navigator.vibrate) (js/navigator.vibrate 30))
+              (swap! state assoc
+                     :start-x   x
+                     :start-y   y
+                     :current-x 0
+                     :dragging? false)
+              (when-let [timer (:lp-timer @state)]
+                (js/clearTimeout timer))
+              (swap! state assoc :lp-timer
+                     (js/setTimeout
+                       (fn []
+                         (when (and (not (:dragging? @state))
+                                    (< (Math/abs (:current-x @state)) 8))
+                           (js/console.log "swipable-card" [:long-press-card tweet-id])
+                           ;; Nice haptic feedback on mobile
+                           (when (and js/navigator js/navigator.vibrate)
+                             (js/navigator.vibrate 30))))
+                       550))))
+
+          :on-touch-move
+          (fn [e]
+            (let [t  (aget (.-touches e) 0)
+                  x  (.-clientX t)
+                  y  (.-clientY t)
+                  dx (- x (:start-x @state))
+                  dy (- y (:start-y @state))]
+              ;; Cancel long-press on any significant movement
+              (when-let [timer (:lp-timer @state)]
+                (when (> (+ (* dx dx) (* dy dy)) 20)
+                  (js/clearTimeout timer)
+                  (swap! state assoc :lp-timer nil)))
+
+              ;; Only apply horizontal drag when movement is mostly horizontal
+              (let [horizontal-intent? (or (:dragging? @state)
+                                           (> (Math/abs dx) (* 0.8 (Math/abs dy))))]
+                (when horizontal-intent?
+                  (let [clamped-x (min 0 dx)]          ; only allow left swipe
+                    (swap! state assoc
+                           :current-x clamped-x
+                           :dragging? true))))))
+
+          :on-touch-end
+          (fn [_]
+            (when-let [timer (:lp-timer @state)]
+              (js/clearTimeout timer)
+              (swap! state assoc :lp-timer nil))
+
+            (let [final-x (:current-x @state)]
+              (if (and (:dragging? @state) (< final-x -90))
+                ;; === Successful left swipe → fly off and remove ===
+                (do
+                  (swap! state assoc :current-x -1200 :dragging? false)
+                  (js/setTimeout
+                    (fn []
+                      (remove-card)
+                      (swap! state assoc :current-x 0))   ; safety reset
+                    280))
+                ;; Snap back
+                (swap! state assoc :current-x 0 :dragging? false))))
+
+          :on-touch-cancel
+          (fn [_]
+            (when-let [timer (:lp-timer @state)]
+              (js/clearTimeout timer))
+            (swap! state assoc :current-x 0 :dragging? false :lp-timer nil))}
+         [card-content params]
+         [card-footer params]]))))

@@ -159,3 +159,12 @@
             :response-content-types {#"application/.*json" :json}
             :on-success [::generation-success tweet-id]
             :on-failure [::generation-failure tweet-id]}]]}))
+
+(rf/reg-event-db
+  ::remove-card
+  (fn [db [_ tweet-id]]
+    (if (some #{tweet-id} (:tweet-ids db))
+      (-> db
+          (update ,,, :tweet-ids (partial remove #(= tweet-id %)) )
+          (update ,,, :tweets dissoc tweet-id))
+      db)))
