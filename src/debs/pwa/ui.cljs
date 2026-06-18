@@ -1,7 +1,7 @@
 (ns debs.pwa.ui
   (:require
-    [debs.pwa.ui.events :as ui.events]
-    [debs.pwa.ui.subscriptions :as ui.subs]
+    [debs.shared.ui.events :as shared.events]
+    [debs.shared.ui.subscriptions :as shared.subs]
     [debs.pwa.storage]
     [re-frame.core :as rf]
     [applied-science.js-interop :as j]
@@ -9,16 +9,16 @@
 
 (defn present
   [{:keys []}]
-  (let [click-paste #(rf/dispatch [::ui.events/paste-from-clipboard])
-        tweet-url (rf/subscribe [::ui.subs/tweet-url])
-        valid-url? (rf/subscribe [::ui.subs/valid-tweet-url?])
+  (let [click-paste #(rf/dispatch [::shared.events/paste-from-clipboard])
+        tweet-url (rf/subscribe [::shared.subs/tweet-url])
+        valid-url? (rf/subscribe [::shared.subs/valid-tweet-url?])
         tweet-card-with-generate (fn [t] (ui.components/tweet-card
                                            (assoc t
                                                   :generate-response
-                                                  (fn [_] (rf/dispatch [::ui.events/generate-response (:tweet-id t)]))
+                                                  (fn [_] (rf/dispatch [::shared.events/generate-response (:tweet-id t)]))
                                                   :tag-info
-                                                  (rf/subscribe [::ui.subs/relative-time (:created-at t)]))))
-        tweets (rf/subscribe [::ui.subs/all-tweets])]
+                                                  (rf/subscribe [::shared.subs/relative-time (:created-at t)]))))
+        tweets (rf/subscribe [::shared.subs/all-tweets])]
     [:section.section
      [:div.columns.is-centered
       [:div.column.is-full-mobile.is-half-desktop

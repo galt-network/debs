@@ -1,28 +1,26 @@
-(ns debs.ext.side-panel.ui)
+(ns debs.ext.side-panel.ui
+  (:require
+    [debs.shared.ui.subscriptions :as shared.subs]
+    [debs.shared.ui.events :as shared.events]
+    [debs.shared.ui.components :as shared.components]
+    [re-frame.core :as rf]))
 
-(defn tweet-card
-  [tweet]
-  (let [padding-size "p-2"]
-    [:div.card
-     [:div.card-content {:class [padding-size]}
-      [:div "Response to: "
-       [:span.has-text-weight-normal (:original-text tweet)]]
-      [:div.content (:response tweet)]]
-     [:footer.card-footer
-      [:a.card-footer-item {:class [padding-size]} "Copy"]
-      [:a.card-footer-item {:class [padding-size]} "Post"]
-      [:a.card-footer-item {:class [padding-size]} "Save for later"]]]))
-
-(defn present [state send-message]
-  (let [last-title (get-in @state [:last-selected-post :text])
-        last-response "none yet"]
-    [:div
-     [:div.field
-      [:div.control
-       [:label.checkbox
-        [:input {:type "checkbox"}]
-        "Analyze on add"]]]
-     (tweet-card {:original-text last-title :response last-response})
-     (map (fn [p] [:div.box (:text p)]) (vals (:posts @state)))
-
-    ]))
+(defn present
+  [{:keys []}]
+  (let [click-paste #(rf/dispatch [::shared.events/paste-from-clipboard])
+        tweet-url (rf/subscribe [::shared.subs/tweet-url])
+        valid-url? (rf/subscribe [::shared.subs/valid-tweet-url?])
+        tweet-card-with-generate (fn [t] (shared.components/tweet-card
+                                           (assoc t
+                                                  :generate-response
+                                                  (fn [_] (rf/dispatch [::shared.events/generate-response (:tweet-id t)]))
+                                                  :tag-info
+                                                  (rf/subscribe [::shared.subs/relative-time (:created-at t)]))))
+        tweets (rf/subscribe [::shared.subs/all-tweets])]
+    [:section.section
+     [:div.columns.is-centered
+      [:div.column.is-full-mobile.is-half-desktop
+       (shared.components/pasteable-input {:on-click-paste click-paste
+                                       :tweet-url tweet-url
+                                       :valid-url? valid-url?})
+       (doall (map tweet-card-with-generate @tweets))]]]))

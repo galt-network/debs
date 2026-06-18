@@ -2,138 +2,85 @@
   "Content script: injects a Reply Helper button into X/Twitter tweets.
    Compile with shadow-cljs (browser target) and load as a content script."
   (:require
-   [clojure.string]
-   [applied-science.js-interop :as j]
-   [debs.ext.messaging :as messaging]
-   [oops.core :refer [oset!]]
-   [goog.array :as garray]))
+   [clojure.string :as str]))
 
-(def tweet-selector
-  "article[data-testid=\"tweet\"], article[role=\"article\"]")
+(def BUTTON-CLASS "ai-reply-btn")
+(def BUTTON-CLASSES "button is-small is-info ml-1") ; Bulma + tiny margin
 
-(def processed-attr "data-rh-processed")
+(defn extract-tweet-data [article]
+  (let [user-name-el   (.querySelector article "div[data-testid='User-Name']")
+        first-a        (.querySelector user-name-el "a[role='link']")
+        all-as         (array-seq (.querySelectorAll user-name-el "a[role='link']"))
+        display-name   (if first-a (str/trim (.-textContent first-a)) "")
+        username       (if (> (count all-as) 1)
+                         (str/replace (.-textContent (second all-as)) #"^@" "")
+                         "")
+        time-el        (.querySelector article "time[datetime]")
+        iso-date       (if time-el (.getAttribute time-el "datetime") "")
+        status-link    (if time-el (.-parentElement time-el) nil)
+        tweet-link     (if status-link (.-href status-link) "")
+        tweet-id       (if-let [m (re-find #"/status/(\d+)" tweet-link)]
+                         (second m)
+                         "")
+        tweet-text-el  (.querySelector article "div[data-testid='tweetText']")
+        tweet-text     (if tweet-text-el (str/trim (.-textContent tweet-text-el)) "")
+        action-group   (.querySelector article "div[role='group'][aria-label*='replies']")
+        aria-label     (if action-group (.getAttribute action-group "aria-label") "")
+        replies-count  (if-let [m (re-find #"(\d+)\s+replies?" aria-label)]
+                         (js/parseInt (second m) 10)
+                         0)]
+    {:display-name  display-name
+     :username      username
+     :tweet-link    tweet-link
+     :iso-date      iso-date
+     :tweet-id      tweet-id
+     :replies-count replies-count
+     :tweet-text    tweet-text}))
 
-;; --------------------------------------------------
-;; Helper functions (implement / customize these)
-;; --------------------------------------------------
+(defn create-reply-button [article on-tweet-selected]
+  (let [btn (js/document.createElement "button")]
+    (set! (.-className btn) (str BUTTON-CLASS " " BUTTON-CLASSES))
+    (set! (.-type btn) "button")
+    (set! (.-innerHTML btn) "✍️")
+    (set! (.-title btn) "Select tweet for reply assistance")
 
-(defn get-tweet-text [tweet]
-  ;; Basic implementation — replace with your real logic if needed
-  ;; (e.g. handling links, mentions, or multiple child spans)
-  (or (some-> tweet
-              (.querySelector "[data-testid=\"tweetText\"]")
-              .-textContent
-              clojure.string/trim)
-      ""))
+    (.addEventListener
+      btn "click"
+      (fn [e]
+        (.preventDefault e)
+        (.stopPropagation e)
+        (let [data (extract-tweet-data article)]
+          (on-tweet-selected data))))
+    btn))
 
-(defn get-tweet-data [tweet]
-  (let [user-name-el (.querySelector tweet "[data-testid=\"User-Name\"]")
-        time-el      (.querySelector tweet "time")
-        reply-btn    (.querySelector tweet "[data-testid=\"reply\"]")
-        repost-btn   (.querySelector tweet "[data-testid=\"retweet\"]")
-        permalink-el (some-> time-el (.closest "a[href*=\"/status/\"]"))]
-    {:display-name   (some-> user-name-el
-                             (.querySelector "span:first-child")
-                             .-textContent
-                             .trim)
-     :username       (some-> user-name-el
-                             (.querySelector "a")
-                             .-href
-                             (.split "/")
-                             (aget 3))
-     :date-iso       (some-> time-el (.getAttribute "datetime"))
-     :date-human     (some-> time-el .-textContent .trim)
-     :permalink      (some-> permalink-el .-href)
-     :tweet-id       (some-> permalink-el
-                             .-href
-                             (.split "/status/")
-                             (aget 1)
-                             (.split "?")
-                             (aget 0))
-     :replies-count  (some-> reply-btn .-textContent .trim)
-     ; :reply-btn      reply-btn
-     ; :repost-btn     repost-btn
-     :text           (some-> (.querySelector tweet "[data-testid=\"tweetText\"]")
-                             .-textContent
-                             .trim)
-     :likes-count    (some-> (.querySelector tweet "[data-testid=\"like\"]")
-                             .-textContent .trim)
-     :reposts-count  (some-> (.querySelector tweet "[data-testid=\"retweet\"]")
-                             .-textContent .trim)}))
+(defn add-reply-button-if-needed! [article on-tweet-selected]
+  (when (and article
+             (not (.querySelector article (str "." BUTTON-CLASS))))
+    (when-let [reply-btn (.querySelector article "button[data-testid='reply']")]
+      (let [wrapper (.-parentElement reply-btn)]
+        (.appendChild wrapper (create-reply-button article on-tweet-selected))))))
 
-(defn show-reply-helper-panel [text meta tweet-el]
-  (messaging/send-message {:type :select-post :content text :meta meta})
-  (js/console.log "Reply Helper opened for tweet:" tweet-el))
+(defn process-existing-tweets! [{:keys [on-tweet-selected]}]
+  (doseq [article (array-seq (js/document.querySelectorAll "article[data-testid='tweet']"))]
+    (add-reply-button-if-needed! article on-tweet-selected)))
 
-;; --------------------------------------------------
-;; Core injection logic
-;; --------------------------------------------------
+(defn process-mutations
+  [{:keys [on-tweet-selected]} mutations]
+  (doseq [mutation (array-seq mutations)]
+    (when (= (.-type mutation) "childList")
+      (doseq [node (array-seq (.-addedNodes mutation))]
+        (when (and node (= (.-nodeType node) 1))
+          ;; Direct article
+          (when (and (= (.-tagName node) "ARTICLE")
+                     (= (.getAttribute node "data-testid") "tweet"))
+            (add-reply-button-if-needed! node on-tweet-selected))
+          ;; Articles inside newly added containers (cellInnerDiv, etc.)
+          (doseq [art (array-seq (.querySelectorAll node "article[data-testid='tweet']"))]
+            (add-reply-button-if-needed! art on-tweet-selected)))))))
 
-(defn inject-reply-button [tweet]
-  (when-not (.hasAttribute tweet processed-attr)
-    (when (.querySelector tweet "[data-testid=\"tweetText\"]")
-      (.setAttribute tweet processed-attr "true")
-
-      (when-let [action-group (.querySelector tweet "div[role=\"group\"]")]
-        (let [btn (js/document.createElement "button")]
-          (set! (.-innerHTML btn) "✍️")
-          (set! (.-title btn) "Reply Helper")
-          (.setAttribute btn "aria-label" "Open Reply Helper")
-          (set! (.-className btn) "rh-action-btn")
-
-          (.addEventListener btn "click"
-            (fn [e]
-              (.stopImmediatePropagation e)
-              (.preventDefault e)
-              (let [text (get-tweet-text tweet)
-                    meta (get-tweet-data tweet)]
-                (show-reply-helper-panel text meta tweet))))
-
-          ;; Insert right after the native Reply button when possible
-          (if-let [reply-btn (.querySelector action-group "[data-testid=\"reply\"]")]
-            (if-let [parent (.-parentElement reply-btn)]
-              (.insertBefore parent btn (.-nextSibling reply-btn))
-              (.prepend action-group btn))
-            (.prepend action-group btn)))))))
-
-;; --------------------------------------------------
-;; Initial scan + live observer (infinite scroll, navigation, etc.)
-;; --------------------------------------------------
-
-(defn init-reply-helper! []
-  ;; 1. Process tweets that already exist on the page
-  (garray/forEach (.querySelectorAll js/document tweet-selector)
-                  inject-reply-button)
-
-  ;; 2. Watch for new tweets being added (MutationObserver)
-  (let [observer (js/MutationObserver.
-                   (fn [mutations]
-                     (garray/forEach mutations
-                       (fn [mutation]
-                         (garray/forEach (.-addedNodes mutation)
-                           (fn [node]
-                             (when (= (.-nodeType node) (.-ELEMENT_NODE js/Node))
-                               ;; Direct match
-                               (when (and (.-matches node)
-                                          (.matches node tweet-selector))
-                                 (inject-reply-button node))
-                               ;; Nested tweets (common with React re-renders)
-                               (garray/forEach (.querySelectorAll node tweet-selector)
-                                               inject-reply-button))))))))]
+(defn setup-mutation-observer!
+  [{:keys [on-tweet-selected]}]
+  (let [observer (js/MutationObserver. (partial process-mutations {:on-tweet-selected on-tweet-selected}))]
+    ;; Observe the whole document (necessary for X's virtualized timeline)
     (.observe observer js/document.body #js {:childList true :subtree true})
-    ;; Return the observer so you can disconnect it later if needed
-    ;; (e.g. when the extension is disabled/unloaded)
     observer))
-
-;; --------------------------------------------------
-;; Boot the script
-;; --------------------------------------------------
-
-;; Call this once when your content script loads.
-;; Using defonce prevents double-initialization during Shadow-CLJS hot reloads in development.
-(comment
-  (defonce ^:private reply-observer
-    (init-reply-helper!)))
-
-;; If you prefer to control startup manually, comment out the defonce above
-;; and call (init-reply-helper!) from your entry point instead.

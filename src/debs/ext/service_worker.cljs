@@ -37,7 +37,8 @@
   Docs: https://developer.chrome.com/docs/extensions/reference/api/sidePanel#method-setPanelBehavior"
   []
   (ocall js/chrome "sidePanel.setOptions" (clj->js {:enabled false}))
-  (ocall js/chrome "sidePanel.setPanelBehavior" (clj->js {:openPanelOnActionClick true})))
+  ; (ocall js/chrome "sidePanel.setPanelBehavior" (clj->js {:openPanelOnActionClick true}))
+  )
 
 (defn supported-url?
   [supported-urls url]
@@ -55,6 +56,4 @@
   []
   (on-extension-installed configure-side-panel)
   (on-tabs-updated (partial open-panel-for-enabled-sites enabled-sites))
-  (j/assoc! js/self :zeSendMessage messaging/send-to-active-tab)
-  (j/assoc! js/self :zeAnswerReady #(messaging/send-message {:type :answer-ready :answer "42"}))
   (messaging/start-listening! message-handlers/handle))

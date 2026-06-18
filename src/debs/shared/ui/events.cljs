@@ -1,7 +1,8 @@
-(ns debs.pwa.ui.events
+(ns debs.shared.ui.events
   (:require
    [debs.shared.validations :refer [tweet-id-from-url]]
    [superstructor.re-frame.fetch-fx]
+   [debs.shared.data-helpers :refer [deep-merge]]
    [re-frame.core :as rf]))
 
 (defonce timer
@@ -15,16 +16,6 @@
   (fn [db _]
     (assoc db :now (js/Date.))))
 
-(defn deep-merge
-  "Recursively merges maps. Later values overwrite earlier ones."
-  [& maps]
-  (apply merge-with
-         (fn [v1 v2]
-           (if (and (map? v1) (map? v2))
-             (deep-merge v1 v2)
-             v2))
-         maps))
-
 (goog-define DEBS_API_BASE_URL "http://localhost:3000/api")
 
 (def default-db
@@ -36,7 +27,7 @@
    :tweets {}})
 
 (rf/reg-event-fx
- :initialize
+ ::initialize
  [(rf/inject-cofx :debs.pwa.storage/local-storage-db)]
  (fn [{:keys [db local-storage-db]} _]
    {:db (deep-merge default-db db (or (dissoc local-storage-db :config :now) {}))}))

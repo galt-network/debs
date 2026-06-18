@@ -7,6 +7,8 @@
   (-> message
       (js->clj ,,, :keywordize-keys true)
       (update ,,, :type keyword)
+      (assoc ,,, :sender sender)
+      (assoc ,,, :send-response send-response)
       (handler ,,,)))
 
 (defn start-listening!

@@ -1,4 +1,4 @@
-(ns debs.pwa.ui.subscriptions
+(ns debs.shared.ui.subscriptions
   (:require
    [debs.shared.time-helpers :refer [relative-time-str]]
    [debs.shared.validations :refer [tweet-id-from-url]]

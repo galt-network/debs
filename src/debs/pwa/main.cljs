@@ -1,10 +1,10 @@
 (ns debs.pwa.main
   (:require
    [debs.pwa.ui :as ui]
+   [debs.shared.ui.events :as shared.events]
    [lambdaisland.glogi :as log]
    [lambdaisland.glogi.console :as glogi-console]
    [re-frame.core :as rf]
-   [reagent.core :as r]
    [reagent.dom.client :as rdc]))
 
 (glogi-console/install!)
@@ -16,8 +16,6 @@
 
 (defonce app-root
   (atom nil))
-
-(defonce ui-state (r/atom {:tweet-url nil}))
 
 (defn render!
   [container deps]
@@ -46,14 +44,14 @@
   (when-dom-ready
     (fn [_]
       (reset! app-root (rdc/create-root (js/document.getElementById "app")))
-      (rf/dispatch-sync [:initialize])
+      (rf/dispatch-sync [::shared.events/initialize])
       (handle-incoming-share!)
-      (render! @app-root {:state ui-state}))))
+      (render! @app-root {}))))
 
 (defn start!
   []
   (rf/clear-subscription-cache!)
-  (render! @app-root {:state ui-state}))
+  (render! @app-root {}))
 
 (defn stop!
   []
