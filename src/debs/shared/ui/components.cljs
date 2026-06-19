@@ -16,26 +16,34 @@
     [:div.card-content {:class [padding-size]}
      [:p {:class ["is-flex" "is-flex-wrap-wrap" "is-justify-content-space-between" "is-align-items-center"]}
       [:a {:href tweet-url :target "_blank"} tweet-url]
-      [:span.tag.mb-3 @tag-info]]
+      [:span.tag.mb-3.mr-5 @tag-info]]
      [:div.content [:blockquote.is-italic text]]
      (when-not (nil? response-progress)
        (if (or (> 100 progress) (not done?))
          [:progress.progress {:value progress :max 100}]
          [:div.content response-text]))]))
 
+(defn icon-text
+  [icons text]
+  [:span.icon-text
+   [:span.icon [:i {:class (into [:fas] icons)}]]
+   [:span text]])
+
 (defn card-footer
   [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress] :as params}]
   (let [padding-size "p-2"
-        response-text (:text response)
-        {:keys [progress done?]} response-progress]
+        response-text (:text response)]
     (if (nil? response-text)
       [:footer.card-footer
        [:div.card-footer-item {:class [padding-size]}
         [:a.button.is-success.is-fullwidth {:on-click generate-response} "de-bullshit"]]]
       [:footer.card-footer
-       [:a.card-footer-item {:class [padding-size] :on-click #(bh/copy-to-clipboard response-text)} "Copy"]
-       [:a.card-footer-item {:class [padding-size] :href (prefilled-reply-url tweet-id response-text) :target "_blank"} "Post"]
-       [:a.card-footer-item {:class [padding-size] :on-click generate-response} "New answer"]])))
+       [:a.card-footer-item {:class [padding-size] :on-click #(bh/copy-to-clipboard response-text)}
+        [icon-text [:fa-solid :fa-copy] "Copy"]]
+       [:a.card-footer-item {:class [padding-size] :href (prefilled-reply-url tweet-id response-text) :target "_blank"}
+        [icon-text [:fa-solid :fa-bullhorn] "Post"]]
+       [:a.card-footer-item {:class [padding-size] :on-click generate-response}
+        [icon-text [:fa-solid :fa-repeat] "New answer"]]])))
 
 (defn tweet-card
   [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress] :as params}]
@@ -68,7 +76,14 @@
                        :current-x 0
                        :lp-timer  nil})]
     (fn [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress remove-card] :as params}]
-      (let [{:keys [dragging? current-x]} @state]
+      (let [{:keys [dragging? current-x]} @state
+            fly-off-and-remove (fn []
+                                 (swap! state assoc :current-x -1200 :dragging? false)
+                                 (js/setTimeout
+                                   (fn []
+                                     (remove-card)
+                                     (swap! state assoc :current-x 0))   ; safety reset
+                                   280))]
         [:div.card
          {:key tweet-id
           :style {:transform   (when (or dragging? (not= current-x 0))
@@ -133,13 +148,7 @@
             (let [final-x (:current-x @state)]
               (if (and (:dragging? @state) (< final-x -90))
                 ;; === Successful left swipe → fly off and remove ===
-                (do
-                  (swap! state assoc :current-x -1200 :dragging? false)
-                  (js/setTimeout
-                    (fn []
-                      (remove-card)
-                      (swap! state assoc :current-x 0))   ; safety reset
-                    280))
+                (fly-off-and-remove)
                 ;; Snap back
                 (swap! state assoc :current-x 0 :dragging? false))))
 
@@ -148,5 +157,11 @@
             (when-let [timer (:lp-timer @state)]
               (js/clearTimeout timer))
             (swap! state assoc :current-x 0 :dragging? false :lp-timer nil))}
+         [:button.delete.is-small {:style {:position "absolute"
+                                           :top "0.5rem"
+                                           :right "0.5rem"
+                                           :z-index "10"}
+                                   :aria-label "Delete this card"
+                                   :on-click fly-off-and-remove}]
          [card-content params]
          [card-footer params]]))))
