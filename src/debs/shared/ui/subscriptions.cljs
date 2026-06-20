@@ -35,6 +35,12 @@
   (fn [db _]
     (map (fn [tweet-id] (get-in db [:tweets tweet-id])) (:tweet-ids db))))
 
-(comment
-  (require 're-frame.db)
-  re-frame.db/app-db)
+(rf/reg-sub
+  ::menu-selection
+  (fn [db _]
+    (get-in db [:menu-selection])))
+
+(rf/reg-sub
+  ::selected-prompt-options
+  (fn [db _]
+    (get-in db [:prompt-options] {})))

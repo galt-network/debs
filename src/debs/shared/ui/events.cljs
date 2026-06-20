@@ -24,13 +24,16 @@
    :config {:api-base-url DEBS_API_BASE_URL}
    :instructions "The response length must be 280 characters or shorter"
    :tweet-ids (list)
+   :menu-selection nil
+   :prompt-options {:response-length :tweet
+                    :response-tone :neutral}
    :tweets {}})
 
 (rf/reg-event-fx
  ::initialize
  [(rf/inject-cofx :debs.pwa.storage/local-storage-db)]
  (fn [{:keys [db local-storage-db]} _]
-   {:db (deep-merge default-db db (or (dissoc local-storage-db :config :now) {}))}))
+   {:db (deep-merge default-db db (or (dissoc local-storage-db :menu-selection :config :now) {}))}))
 
 (rf/reg-fx
   ::read-clipboard
@@ -140,6 +143,16 @@
         (assoc-in db [:tweets tweet-id :response-progress :progress] progress))
       db)))
 
+(defn format-instructions
+  [{:keys [response-tone response-length]}]
+  (let [lengths {:tweet "up to 280 characters"
+                 :double-tweet "up to 560 characters"
+                 :three-paragraphs "three paragraphs"
+                 :detailed "detailed instructive explanation up to 5 paragraphs"}]
+    (str
+      "<response-tone>" (name response-tone) "</response-tone>\n"
+      "<response-length>" (get lengths response-length) "</response-length>\n")))
+
 (rf/reg-event-fx
   ::generate-response
   (fn [{:keys [db]} [_ tweet-id]]
@@ -155,7 +168,7 @@
             :credentials :omit
             :request-content-type :json
             :body {:original_text (get-in db [:tweets tweet-id :text])
-                   :instructions (get-in db [:instructions])}
+                   :instructions (format-instructions (get-in db [:prompt-options]))}
             :response-content-types {#"application/.*json" :json}
             :on-success [::generation-success tweet-id]
             :on-failure [::generation-failure tweet-id]}]]}))
@@ -171,3 +184,20 @@
             db)]
       {:db updated-db
        :fx [[:debs.pwa.storage/persist-db updated-db]]})))
+
+
+(defn toggle-value
+  [db value-path new-value & [default]]
+  (let [previous-value (get-in db value-path)
+        new-value (if (= previous-value new-value) default new-value)]
+    (assoc-in db value-path new-value)))
+
+(rf/reg-event-db
+  ::toggle-menu-item
+  (fn [db [_ selected-item]]
+    (toggle-value db [:menu-selection] selected-item)))
+
+(rf/reg-event-db
+  ::select-option
+  (fn [db [_ option-key option-value default]]
+    (toggle-value db [:prompt-options option-key] option-value default)))

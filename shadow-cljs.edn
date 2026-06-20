@@ -35,6 +35,7 @@
   {:target :esm
    :output-dir "ext/js"
    :runtime :custom
+   :closure-defines {debs.shared.ui.events/DEBS_API_BASE_URL #shadow/env ["DEBS_API_BASE_URL" "http://localhost:3000/api"]}
    :devtools {:preloads [devtools.preload]}
    :modules
    {:content-script
@@ -45,6 +46,7 @@
   {:target :esm
    :output-dir "ext/js"
    :runtime :custom
+   :closure-defines {debs.shared.ui.events/DEBS_API_BASE_URL #shadow/env ["DEBS_API_BASE_URL" "http://localhost:3000/api"]}
    :devtools {:preloads [devtools.preload]}
    :modules
    {:service-worker
@@ -54,6 +56,7 @@
    {:target :esm
     :output-dir "ext/js"
     :runtime :custom
+    :closure-defines {debs.shared.ui.events/DEBS_API_BASE_URL #shadow/env ["DEBS_API_BASE_URL" "http://localhost:3000/api"]}
     :devtools {:preloads [devtools.preload]}
     :modules
     {:side-panel

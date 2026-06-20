@@ -4,8 +4,9 @@
     [debs.shared.ui.subscriptions :as shared.subs]
     [debs.pwa.storage]
     [re-frame.core :as rf]
-    [applied-science.js-interop :as j]
-    [debs.shared.ui.components :as ui.components]))
+    [debs.shared.ui.components :as shared.components]
+    [debs.shared.ui.components.menu :refer [menu]]))
+
 
 (defn present
   [{:keys []}]
@@ -14,7 +15,7 @@
         valid-url? (rf/subscribe [::shared.subs/valid-tweet-url?])
         tweet-card-with-generate (fn [t]
                                    ^{:key (:tweet-id t)}
-                                   [ui.components/swipeable-tweet-card
+                                   [shared.components/swipeable-tweet-card
                                     (assoc t
                                            :generate-response
                                            (fn [_]
@@ -27,7 +28,8 @@
     [:section.section
      [:div.columns.is-centered
       [:div.column.is-full-mobile.is-half-desktop
-       (ui.components/pasteable-input {:on-click-paste click-paste
-                                       :tweet-url tweet-url
-                                       :valid-url? valid-url?})
+       [menu]
+       (shared.components/pasteable-input {:on-click-paste click-paste
+                                           :tweet-url tweet-url
+                                           :valid-url? valid-url?})
        (doall (map tweet-card-with-generate @tweets))]]]))

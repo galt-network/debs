@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "deBS - de-bullshit the collectivist lies",
   "description": "Helps to analyze and refute collectivist messages on the media",
-  "version": "1.0.0",
+  "version": "0.1",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -39,7 +39,7 @@
 
   "web_accessible_resources": [{
     "matches": ["<all_urls>"],
-    "resources": ["js/*", "*.js", "js/cljs-runtime/*"]}],
+    "resources": ["js/*", "*.js", "js/cljs-runtime/*", "vendor/*"]}],
   "commands": {
     "reload-extension": {
       "suggested_key": {"default": "Ctrl+Shift+U"},

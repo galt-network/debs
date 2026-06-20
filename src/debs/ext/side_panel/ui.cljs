@@ -1,9 +1,10 @@
 (ns debs.ext.side-panel.ui
   (:require
-    [debs.shared.ui.subscriptions :as shared.subs]
-    [debs.shared.ui.events :as shared.events]
-    [debs.shared.ui.components :as shared.components]
-    [re-frame.core :as rf]))
+   [debs.shared.ui.components :as shared.components]
+   [debs.shared.ui.components.menu :as menu]
+   [debs.shared.ui.events :as shared.events]
+   [debs.shared.ui.subscriptions :as shared.subs]
+   [re-frame.core :as rf]))
 
 (defn present
   [{:keys []}]
@@ -20,6 +21,7 @@
     [:section.section
      [:div.columns.is-centered
       [:div.column.is-full-mobile.is-half-desktop
+       [menu/menu]
        (shared.components/pasteable-input {:on-click-paste click-paste
                                        :tweet-url tweet-url
                                        :valid-url? valid-url?})

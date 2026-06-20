@@ -43,7 +43,7 @@
                (if-let [prompt (generator-input body)]
                  (-> (openrouter/chat-completion prompt)
                      (.then (fn [r]
-                              (js/console.log ">>> generation DONE:" (str (subs (get body "original_text") 0 30) "..."))
+                              (js/console.log ">>> generation DONE:" (str (subs (get body "original_text") 0 30) "... - " (subs r 0 30) "..."))
                               (http/send-json res 200 {:response r})))
                      (.catch (fn [err]
                                (js/console.error "openrouter error" err)
