@@ -168,7 +168,8 @@
             :credentials :omit
             :request-content-type :json
             :body {:original_text (get-in db [:tweets tweet-id :text])
-                   :instructions (format-instructions (get-in db [:prompt-options]))}
+                   :instructions {:response-tone (get-in db [:prompt-options :response-tone])
+                                  :response-length (get-in db [:prompt-options :response-length])}}
             :response-content-types {#"application/.*json" :json}
             :on-success [::generation-success tweet-id]
             :on-failure [::generation-failure tweet-id]}]]}))

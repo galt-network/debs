@@ -5,6 +5,8 @@
   (:require
    ["url" :as url]
    [clojure.string :as str]
+   [clojure.walk :refer [keywordize-keys]]
+   [debs.shared.prompt-helpers :as ph]
    [debs.server.db :as db]
    [debs.server.http :as http]
    [debs.server.openrouter :as openrouter]
@@ -22,28 +24,24 @@
 
 ;; --- /generator ------------------------------------------------------------
 
-(defn- build-prompt
-  "Combine instructions + tweet into the OpenRouter prompt."
-  [original-text instructions]
-  (str "\n<instructions>\n" instructions "</instructions>\n" "<tweet>\n" original-text "\n</tweet>"))
-
 (defn- generator-input
   "Pull the two required fields from the parsed body. Returns the prompt
    string, or nil when the body is missing one of the fields."
   [body]
   (let [original-text (get body "original_text")
-        instructions   (get body "instructions")]
+        instructions   (keywordize-keys (js->clj (get body "instructions")))]
     (when (and original-text instructions)
-      (build-prompt original-text instructions))))
+      [(str "<tweet>" original-text "</tweet>") (ph/prompt-options->prompt instructions)])))
 
 (defn generator-handler [req ^js res]
   (-> (http/read-body req)
       (.then (fn [body]
                (println ">>> generating for:" (str (subs (get body "original_text") 0 30) "..."))
-               (if-let [prompt (generator-input body)]
-                 (-> (openrouter/chat-completion prompt)
+               (if-let [[prompt system-prompt-extras] (generator-input body)]
+                 (-> (openrouter/chat-completion prompt system-prompt-extras)
                      (.then (fn [r]
-                              (js/console.log ">>> generation DONE:" (str (subs (get body "original_text") 0 30) "... - " (subs r 0 30) "..."))
+                              (js/console.log ">>> generation DONE:"
+                                              (str (subs (get body "original_text") 0 30) "...\n   ANSWER: " r))
                               (http/send-json res 200 {:response r})))
                      (.catch (fn [err]
                                (js/console.error "openrouter error" err)
