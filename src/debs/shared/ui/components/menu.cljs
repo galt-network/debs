@@ -46,7 +46,7 @@
    [:h3 "You can use deBS on your desktop as browser extension"]
    [:ol
     [:li "Download the ZIP file from the following "
-     [:a {:href "https://github.com"} "link"]]
+     [:a {:href "https://github.com/galt-network/debs/releases" :target "_blank"} "link"]]
     [:li "Extract/unzip it to a folder."]
     [:li "Go to " [:code "chrome://extensions/"] " (or edge://)."]
     [:li "Toggle " [:strong "Developer mode"] " (top right)."]
@@ -54,7 +54,10 @@
 
 (defn show-info
   []
-  [:div.content "These are some info"])
+  [:div.content
+   [:p "deBS - A tool that helps to unveil and refute collectivist fallacies and lies"]
+   [:p "Source code available at: "
+    [:a {:href "https://github.com/galt-network/debs" :target "_blank"} "https://github.com/galt-network/debs"]]])
 
 (defn menu
   []
@@ -77,7 +80,6 @@
                      :view show-info}]
         selected-item-data (first (filter #(= selected-item (get % :id)) menu-items))
         selected-item-view (:view selected-item-data)]
-    (println ">>> SELECTED ITEM" selected-item)
     [:<>
      [:div#button-toolbar.field.has-addons
       (map (fn [{:keys [id title icon]}]
