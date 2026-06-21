@@ -11,7 +11,7 @@
 (def ^:private api-key  (j/get js/process.env "OPENROUTER_API_KEY"))
 (def ^:private model    (j/get js/process.env "OPENROUTER_MODEL"))
 (def ^:private endpoint (j/get js/process.env "OPENROUTER_API_ENDPOINT"))
-(def ^:private model-timeout-limit (* 1000 (js/parseInt (j/get js/process.env "MODEL_TIMEOUT_LIMIT" "30"))))
+(def ^:private model-timeout-limit (* 1000 (js/parseInt (j/get js/process.env "MODEL_TIMEOUT_LIMIT_SECONDS" "30"))))
 
 (def system-prompt (inline-resource "prompts/system.md"))
 

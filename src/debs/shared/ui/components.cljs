@@ -9,13 +9,14 @@
   (bh/build-url "https://x.com/intent/tweet" {"in_reply_to" tweet-id "text" response}))
 
 (defn card-content
-  [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress] :as params}]
+  [{:keys [tweet-id tweet-url tag-info text generate-response response response-progress remove-button] :as params}]
   (let [padding-size "p-2"
         response-text (:text response)
         {:keys [progress done?]} response-progress]
     [:div.card-content {:class [padding-size]}
-     [:p {:class ["is-flex" "is-flex-wrap-wrap" "is-justify-content-space-between" "is-align-items-center"]}
-      [:a {:href tweet-url :target "_blank"} tweet-url]
+     [remove-button]
+     [:p {:class ["is-flex" "is-flex-wrap-wrap" "is-justify-content-space-between" "is-align-items-center" "pr-5"]}
+      [:a {:href tweet-url :target "_blank" :style {:word-break "break-all" :min-width "0"}} tweet-url]
       [:span.tag.mb-3.mr-5 @tag-info]]
      [:div.content [:blockquote.is-italic text]]
      (when-not (nil? response-progress)
@@ -83,7 +84,15 @@
                                    (fn []
                                      (remove-card)
                                      (swap! state assoc :current-x 0))   ; safety reset
-                                   280))]
+                                   280))
+            remove-button  (fn []
+                             [:button.delete.is-small
+                              {:style {:position "absolute"
+                                       :top "0.5rem"
+                                       :right "0.5rem"
+                                       :z-index "10"}
+                               :aria-label "Delete this card"
+                               :on-click fly-off-and-remove}])]
         [:div.card
          {:key tweet-id
           :style {:transform   (when (or dragging? (not= current-x 0))
@@ -157,11 +166,5 @@
             (when-let [timer (:lp-timer @state)]
               (js/clearTimeout timer))
             (swap! state assoc :current-x 0 :dragging? false :lp-timer nil))}
-         [:button.delete.is-small {:style {:position "absolute"
-                                           :top "0.5rem"
-                                           :right "0.5rem"
-                                           :z-index "10"}
-                                   :aria-label "Delete this card"
-                                   :on-click fly-off-and-remove}]
-         [card-content params]
+         [card-content (assoc params :remove-button remove-button)]
          [card-footer params]]))))

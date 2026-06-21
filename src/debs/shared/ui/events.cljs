@@ -17,11 +17,13 @@
     (assoc db :now (js/Date.))))
 
 (goog-define DEBS_API_BASE_URL "http://localhost:3000/api")
+(goog-define MODEL_TIMEOUT_LIMIT_SECONDS "45")
 
 (def default-db
   {:tweet-url nil
    :now (js/Date.)
-   :config {:api-base-url DEBS_API_BASE_URL}
+   :config {:api-base-url DEBS_API_BASE_URL
+            :model-timeout-limit-seconds (js/parseInt MODEL_TIMEOUT_LIMIT_SECONDS)}
    :instructions "The response length must be 280 characters or shorter"
    :tweet-ids (list)
    :menu-selection nil
@@ -137,8 +139,9 @@
   ::response-progress-tick
   (fn [db [_ tweet-id]]
     (if-let [start-time (get-in db [:tweets tweet-id :response-progress :start-time])]
-      (let [elapsed (- (js/Date.now) start-time)
-            total-millis (* 30 1000)
+      (let [timeout-limit-seconds (get-in db [:config :model-timeout-limit-seconds])
+            elapsed (- (js/Date.now) start-time)
+            total-millis (* timeout-limit-seconds 1000)
             progress (min 100 (* 100 (/ elapsed total-millis)))]
         (assoc-in db [:tweets tweet-id :response-progress :progress] progress))
       db)))
